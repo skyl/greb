@@ -7,8 +7,24 @@ var query;
 var h4;
 var insensitive;
 var recurse;
+var match;
 
 window.C = 0
+
+
+function matches(inputstring, text) {
+  var regParts = inputstring.match(/^\/(.*?)\/([gim]*)$/);
+  if (regParts) {
+    // the parsed pattern had delimiters and modifiers. handle them.
+    var regexp = new RegExp(regParts[1], regParts[2]);
+
+  } else {
+    // we got pattern string without delimiters
+    var regexp = new RegExp(inputstring);
+  }
+  return text.match(regexp);
+}
+
 
 
 function hrefsFromText(text) {
@@ -20,7 +36,7 @@ function hrefsFromText(text) {
   for (var i=0; i<links.length; i++) {
     href = links[i].getAttribute("href");
     if (href && href.indexOf("http") === 0) {
-      console.log("adding", href);
+      //console.log("adding", href);
       hrefs.push(href);
     }
   }
@@ -31,7 +47,7 @@ function hrefsFromText(text) {
 
 
 function get(link, cb) {
-  console.log('GET!', link);
+  //console.log('GET!', link);
 
   window.C += 1;
   var req = new XMLHttpRequest();
@@ -55,13 +71,13 @@ function openAnchorNewWindow(ev) {
 
 
 
-function match(link, text, r) {
+function testText(link, text, r) {
   if (insensitive) {
     text = text.toLowerCase();
     query = query.toLowerCase();
   }
   if (text.indexOf(query) > -1) {
-    console.log(text.indexOf(query));
+    //console.log(text.indexOf(query));
     var a = document.createElement("a");
     a.appendChild(document.createTextNode(link));
     a.setAttribute("href", link);
@@ -70,69 +86,69 @@ function match(link, text, r) {
     innerResults.appendChild(a);
     innerResults.appendChild(document.createElement("br"));
 
-    console.log("recurse?", r, recurse)
+    //console.log("recurse?", r, recurse)
     if (r < recurse) {
       var subLinks = hrefsFromText(text);
-      console.log("sublinks!", link, subLinks);
+      //console.log("sublinks!", link, subLinks);
       for (var i = subLinks.length - 1; i >= 0; i--) {
         link = subLinks[i];
         // only see a link once! muahah?!
-        console.log("in sublinks", link);
+        // console.log("in sublinks", link);
         if (sLinks.has(link)) {
-          console.log("already have", link)
+          //console.log("already have", link)
           continue;
         }
         sLinks.add(link);
-        console.log("get", link);
-        get(link, function(slink, stext) {
-          match(slink, stext, r + 1);
-        });
+        //console.log("get", link);
+        if (matches(document.getElementById("m").value, link)) {
+          get(link, function(slink, stext) {
+            testText(slink, stext, r + 1);
+          });
+        }
       };
     }
   }
 }
 
 
+function submitQuery() {
+  query = document.getElementById("greb").value;
 
-function onKeyUp(ev) {
-  //console.log('KEYUP!');
-  //console.log(ev)
+  insensitve = document.getElementById("i").checked;
+  recurse = parseInt(document.getElementById("r").value) || 1;
+  match = document.getElementById("m").value || "";
 
-  if (ev.which === 13) {
-    //console.log(allLinks);
+  innerResults = document.createElement("div");
 
-    recurse = parseInt(document.getElementById("r").value) || 1;
-    insensitve = document.getElementById("i").checked;
+  // secure
+  h4 = document.createElement("h4");
+  var r = document.getElementById("r").value
+  h4.appendChild(
+    document.createTextNode(
+      query
+      + (document.getElementById("i").checked ? " -i" : "")
+      + (r ? " r(" + r + ")" : "")
+    )
+  );
+  innerResults.appendChild(h4);
+  results.insertBefore(innerResults, results.firstChild);
 
-    query = document.getElementById("greb").value;
-    innerResults = document.createElement("div");
-    // make header and secure?
-    h4 = document.createElement("h4");
-    h4.appendChild(
-      document.createTextNode(
-        query
-        + (document.getElementById("i").checked ? " -i" : "")
-      )
-    );
-    innerResults.appendChild(h4);
-    results.insertBefore(innerResults, results.firstChild);
-    //results.appendChild(innerResults);
+  sLinks = new Set(allLinks);
 
-    sLinks = new Set(allLinks);
-
-    sLinks.forEach(function(val) {
+  sLinks.forEach(function(val) {
+    if (matches(match, val)) {
       get(val, function(slink, stext) {
-        match(slink, stext, 1);
-      })
-    });
-
-    /*
-    for (var i = sLinks.size - 1; i >= 0; i--) {
-      get(allLinks[i], function(slink, stext){
-        match(slink, stext, 1);
+        testText(slink, stext, 1);
       });
     }
-    */
+  });
+}
+
+
+
+function onKeyUp(ev) {
+  if (ev.which === 13) {
+    submitQuery();
   }
 }
 
@@ -152,17 +168,17 @@ chrome.extension.onRequest.addListener(function(links) {
 // Set up event handlers and inject send_links.js into all frames in the active
 // tab.
 window.onload = function() {
-  console.log('onload!');
-  var el = document.getElementById('greb');
   results = document.getElementById("results");
-  //console.log(el);
-  el.onkeyup = onKeyUp;
+  document.getElementById("greb").onkeyup = onKeyUp;
+  document.getElementById("r").onkeyup = onKeyUp;
+  document.getElementById("i").onkeyup = onKeyUp;
+  document.getElementById("m").onkeyup = onKeyUp;
 
   chrome.windows.getCurrent(function (currentWindow) {
     chrome.tabs.query(
       {active: true, windowId: currentWindow.id},
       function(activeTabs) {
-        console.log('activeTabs!');
+        // console.log('activeTabs!');
         // console.log(activeTabs)
         chrome.tabs.executeScript(
           activeTabs[0].id, {file: 'send_links.js', allFrames: true}

@@ -4,9 +4,13 @@
 <style>
 /*
 body {
-  opacity: 0.6;
+  opacity: 0.9;
+  font-size: 2em;
 }
 */
+body {
+  max-width: 640px;
+}
 #greb {
   width: 100%;
   min-width: 23em;
@@ -17,13 +21,18 @@ body {
 #r {
   width: 1em;
 }
+#m {
+  width: 10em;
+}
 </style>
 </head>
 <body>
   <input type="text" id="greb" placeholder="greb">
   <div id="options">
+    <!-- insensitive, recurse, match -->
     i <input type="checkbox" id="i">
     r <input type="text" id="r">
+    m <input type="text" id="m">
   </div>
   <div id="results"></div>
 </body>
