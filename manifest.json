@@ -2,7 +2,7 @@
   "name": "greb",
   "description": "greb these pages",
   "version": "0.1",
-  "permissions": ["downloads", "<all_urls>"],
+  "permissions": ["downloads", "<all_urls>", "tabs"],
   "browser_action": {
     "default_popup": "popup.html",
     "default_icon": {

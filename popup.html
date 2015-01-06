@@ -1,5 +1,7 @@
 <!DOCTYPE html>
 <head>
+<script src='pdfjs/build/pdf.js'></script>
+<script src='pdf2text.js'></script>
 <script src='popup.js'></script>
 <style>
 body {
@@ -21,12 +23,15 @@ body {
 </style>
 </head>
 <body>
-  <input type="text" id="greb" placeholder="greb">
+  <input type="text" id="greb" placeholder="greb" title="string or regular expression to search">
   <div id="options">
-    <!-- insensitive, recurse, match -->
-    i <input type="checkbox" id="i">
-    r <input type="text" id="r">
-    m <input type="text" id="m">
+    <!-- insensitive, recurse, all match -->
+    i <input type="checkbox" id="i" title="case insensitive">
+    r <input type="text" id="r" title="number of steps to recurse">
+    <!--
+    a <input type="checkbox" id="a" title="recurse all, whether or not word is found on parent">
+    -->
+    m <input type="text" id="m" title="report only links that match this pattern">
   </div>
   <div id="results"></div>
 </body>
